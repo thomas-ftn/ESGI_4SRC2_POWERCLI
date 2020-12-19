@@ -19,9 +19,10 @@ try {
         Connect-VIServer -Server 172.180.0.50 -User Administrator@vsphere.local -Password $pass -ErrorAction stop | Out-Null
     }
 catch {
-    write-host "`n Echec de la connexion, vérifez votre mot de passe et relancez le script `n" -ForegroundColor red -BackgroundColor black
+    write-host "`n Echec de la connexion, vérifez vos identifiant et relancez le script `n" -ForegroundColor red -BackgroundColor black
     break
 }
+
 
 write-host "`n Conexion au VCenter réussie `n"  -ForegroundColor green -BackgroundColor black
 Start-Sleep -Seconds 1
@@ -34,6 +35,7 @@ Start-Sleep -Seconds 1
 $Vms = Import-Csv C:\Users\admin\Documents\VMS.csv -Delimiter ';'
 Start-Sleep -Seconds 1
 
+Write-Host "`n Voici la liste des machines à créer.`n"  -ForegroundColor Yellow -BackgroundColor black
 Write-Output $Vms
 Write-Host "`n ################################################"
 Write-Host "`n"
@@ -60,6 +62,7 @@ else
      
  Write-Host "`n TRAITEMENT DE LA DEMANDE DE VM  $VmName `n"  -ForegroundColor Yellow -BackgroundColor black
 
+ ## IF VIRTUAL MACHINE NAME DOES NOT EXIST CONTINUE / IF EXISTS, GO TO ELSE 
         if (!(get-vm $VmName -erroraction 0)){
                 
                            Write-Host "`n Déploiement de la VM $VmName `n"  -ForegroundColor Yellow -BackgroundColor black
@@ -67,6 +70,8 @@ else
            
                                New-vm -ResourcePool $VmPool -Name $VmName -Template $VmTemplate -Datastore $VmDatastore -DrsAutomationLevel AsSpecifiedByCluster -OSCustomizationspec $VmCustom -erroraction 0 | Out-Null
                                
+
+                               #### IF THE VIRTUAL MACHINE NAME EXISTS = SUCCESS ANS CONTINUE BY BOOTING THE MACHINE / IF NOT = DEPLOYMENT FAIL SO GO TO ELSE 
                                if ((get-vm $VmName -erroraction 0)){
                                
 
@@ -74,7 +79,7 @@ else
                                       Start-Sleep -Seconds 1
         
                                   
-
+                                                        
                                                          Write-Host "Démmarage de la VM $VmName" -ForegroundColor yellow -BackgroundColor black
                                                            
                                                          Start-VM -VM $VmName -Confirm:$false -erroraction 0 | Out-Null
@@ -94,7 +99,7 @@ else
                                                               Write-Host "`n La VM $VmName n'a pas démarré `n" -ForegroundColor red -BackgroundColor black
                                                               Start-Sleep -Seconds 1
                                                               $Status = "ECHEC"
-                                                              $Reason = "Déploiement réussi, le démrrage n'a pas abouti. Une intervention est nécéssaire pour lancer la customisation de la machine"
+                                                              $Reason = "Déploiement réussi, le démarrage n'a pas abouti. Une intervention est nécéssaire pour lancer la personnalisation de la machine"
                                                          
                                                               Write-Host "`n Envoi du mail de notification d'erreur de démmarage `n" -ForegroundColor Yellow -BackgroundColor black
                                                               send-mail-technicien -VM_Mail $VmName -Destinataire $Destinataire -Status $Status -Reason $Reason
@@ -126,6 +131,7 @@ else
                    
                    } # END ELSEIF VM EXISTS
                           
+
                           # SEND NOTIFICATION MAIL WITH STATUS AND RESON VALUES
                          send-mail-demandeur -VM_Mail $VmName -Destinataire $Destinataire -Status $Status -Reason $Reason
 
@@ -175,8 +181,8 @@ padding: 5px
 
 
 
-               Write-Host "`n Envoi du compte rendu des opérations au responsable `n"  -ForegroundColor Blue -BackgroundColor black  
-           send-mail-responsable -VM_Mail $VmName -Destinataire $Destinataire -Report $Report
+               Write-Host "`n Envoi du compte rendu des opérations au responsable `n"  -ForegroundColor yellow -BackgroundColor black  
+           send-mail-responsable -Destinataire $Destinataire -Report $Report
 
      Write-Host "`n ##### Fin du traitement ##### `n"  -ForegroundColor green -BackgroundColor black 
         }

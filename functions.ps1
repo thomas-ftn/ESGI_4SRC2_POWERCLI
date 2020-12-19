@@ -3,7 +3,7 @@
 ###### CRYPT PASSWORD ########
         Param([string]$VM_Mail, $Destinataire)
         $PassKey = [byte]95,13,58,45,22,11,88,82,11,34,67,91,19,20,96,82
-        $Password = Get-Content C:\Users\admin\Documents\PassKey.txt | Convertto-SecureString -Key $PassKey
+        $Password = Get-Content $PSScriptRoot\PassKey.txt | Convertto-SecureString -Key $PassKey
         $Password = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($Password))
 
 ###### VARIABLES #####
